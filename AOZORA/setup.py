@@ -3,14 +3,22 @@ import discord
 import discord.ext.commands
 import asyncio
 import configparser
+import os
+from os.path import join, dirname
+from dotenv import load_dotenv
 from discord.ext import pages
 from discord import default_permissions
 
+load_dotenv(verbose=True)
+
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path, override=True)
+
 # アクセストークンを設定
-TOKEN = "YOUR_TOKEN"  # 自分のアクセストークンと置換してください
-guild_id = ['1234567890987654321'] # 自分のサーバーIDと置換してください
-version = "Beta 0.37"
-build = "20250217"
+TOKEN=os.environ.get("SETUPTOKEN")
+guild_id=[int(os.getenv("SETUPGUILD_ID"))]
+version = "0.37"
+build = "20250228"
 
 # Botの大元となるオブジェクトを生成する
 bot = discord.Bot(
@@ -126,8 +134,10 @@ Aozora -Setup のﾊﾞｰｼﾞｮﾝ情報
             Version {version} (Build {build})
             2025 Hatsukari
             このアプリケーションはモデレーター、運営のためのツールであり、コード、個人情報を公開してはなりません。
+            このアプリケーションは以下のユーザーによって管理されています。
+            : はつかり
             Aozora -Setup が使用できる最大物理メモリ
-            -- KB
+            8589934592 KB
                """, ephemeral=True)
 
     async def on_timeout(self):
@@ -256,13 +266,15 @@ class SetupButtonView(discord.ui.View):
                 color=discord.Color.blue(),
             )
             view = SetupPropertyView(button.user, thread)
-            await button.response.send_message(f"✅ {button.user.mention} ﾌﾟﾛﾊﾟﾃｨはここから: {thread.mention}", ephemeral=True)
+            await button.response.defer()
+            await button.followup.send(f"✅ {button.user.mention} ﾌﾟﾛﾊﾟﾃｨはここから: {thread.mention}", ephemeral=True)
             await thread.send(f"{button.user.mention}, ここでﾌﾟﾛﾊﾟﾃｨを表示しています。1分経過後、このﾁｬﾝﾈﾙは自動的に削除されます。", embed=embed, view=view)
         else:
         # 新規セットアップユーザーの場合
 
         # スレッド内にセットアップ開始メッセージを送信
-            await button.response.send_message(f"✅ {button.user.mention} 認証はここから: {thread.mention}", ephemeral=True)
+            await button.response.defer()
+            await button.followup.send(f"✅ {button.user.mention} 認証はここから: {thread.mention}", ephemeral=True)
             await thread.send(f"{button.user.mention}, ここでｾｯﾄｱｯﾌﾟを開始します。5分経過後、このﾁｬﾝﾈﾙは自動的に削除されます。")
 
         # setupコマンドを実行
@@ -284,12 +296,39 @@ async def setup_in_thread(thread: discord.TextChannel, user: discord.User, versi
     # ページとなるEmbedを作成
     pages = [
         discord.Embed(title="**利用規約**", description="""
-以下利用規約
+**昭和ﾚﾄﾛｻｰﾊﾞｰ(以下本ｻｰﾊﾞｰといいます)は、以下の利用規約に同意した方のみ利用できます。**
+**なお、次へﾎﾞﾀﾝを押した時点で、以下の利用規約、ﾙｰﾙに同意したものとみなします。**
+同意する場合は、「次へ (__N__) >」を押してください。
+1.本ｻｰﾊﾞｰで起こりました事故や損害については、一切責任を負いません。
+2.個人情報(IPｱﾄﾞﾚｽなど)は、搾取、漏洩しないことを約束します。なお、利用者自身の不手際によって、個人情報が漏洩した場合は一切責任を負いません。
+3.本ｻｰﾊﾞｰでは、昭和の頃の話、昭和ﾚﾄﾛの話、ﾚﾄﾛｹﾞｰﾑ、日常雑談などのｶﾃｺﾞﾘが中心となっております。
+4.治安維持のため、ﾕｰｻﾞｰidを記録する場合があります。ただし、ﾃﾞｰﾀは外部に漏洩されぬよう管理いたします。
+5.必ずﾙｰﾙをご確認ください。**ﾙｰﾙに同意されない場合はｻｰﾊﾞｰからｷｯｸなどをする場合がございます。**
 """, color=discord.Color.dark_gray()),
         discord.Embed(title="**ｻｰﾊﾞｰﾙｰﾙ**", description="""
 **ルール**
 ```python
-以下ルール
+以下の行為は禁止されています
+1."他人に迷惑をかける"
+2."荒らし行為やスパム、宣伝、引き抜き"
+3."思想が強い発言(差別発言など)、不快な行動"
+4."犯罪行為、違法な動画やコンテンツのアップロードや配信"
+5."運営が違反行為と判断するような行動"
+@トラブルが起きましたら、チケットを発行し、運営にご報告願います。
+@自分で解決しようとせずに、まずは運営へご報告ください。
+```
+不快な行動の詳細な例については[こちら](https://discord.com/channels/1330796538531680276/1330836292199776266/1330836295424938047)
+
+**処罰について**
+```python
+違反を重ねれば、罰が下されていきます。
+重い違反の場合、初犯でも重い処罰が下される場合があります。
+1."口頭注意"
+2."DMでの直接注意"
+3."DMでの厳重注意、Careful(要注意人物)ロール追加"
+4."タイムアウト"
+5."サーバーキック"
+6."このコミュニティーからのBAN"
 ```
 同意される方は次へを押してください""", color=discord.Color.dark_gray()),
         discord.Embed(title="好きな世代の選択", description="""
